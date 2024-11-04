@@ -6,68 +6,72 @@ import java.util.ArrayList;
 public class Main {
 
     public static void main(String[] args) {
-        // Parameters for the genetic algorithm
-        String filePath = "src/main/java/org/example/data_jarak.csv"; // Path to the CSV file with teacher data
-        int sampleSize = 1000;            // Number of teachers to sample (reduce data size for testing)
-        int populationSize = 50;          // Reduced population size for faster runtime
-        double mutationProbability = 0.01; // Lower mutation probability (1%)
-        int numGenerations = 300;         // Number of generations
+        String filePath = "src/main/java/org/example/data_jarak.csv";
+        int sampleSize = 50;
+        int populationSize = 50;
+        double mutationProbability = 0.01;
+        int numGenerations = 300;
 
-        // Load and sample teacher data
         ArrayList<Teacher> allTeachers = null;
         try {
             allTeachers = Utilities.loadTeachers(filePath);
             allTeachers = sampleData(allTeachers, sampleSize); // Randomly sample a subset of data
-            System.out.println("Loaded and sampled " + allTeachers.size() + " teachers from CSV.");
+            System.out.printf("Loaded and sampled %d teachers from CSV.\n", allTeachers.size());
         } catch (IOException e) {
             System.err.println("Failed to load teachers: " + e.getMessage());
             return;
         }
 
-        // Initialize population, selection, crossover, mutation, and fitness calculator
         Population population = new Population(populationSize, allTeachers);
         FitnessCalculator fitnessCalculator = new FitnessCalculator();
         Selection selection = new Selection();
         Crossover crossover = new Crossover();
         Mutation mutation = new Mutation();
 
-        // Initial fitness calculation for the population
         fitnessCalculator.calculateFitnessForPopulation(population);
 
-        // Main genetic algorithm loop
-        for (int generation = 0; generation < numGenerations; generation++) {
-            System.out.println("Generation " + generation);
+        for (int generation = 1; generation <= numGenerations; generation++) {
+            System.out.printf("Generation %d:\n", generation);
 
-            // Selection: Create a mating pool
             ArrayList<Chromosome> matingPool = selection.selectMatingPool(population, populationSize);
 
-            // Crossover: Generate offspring
             ArrayList<Chromosome> offspring = crossover.createOffspring(matingPool);
 
-            // Mutation: Apply mutation to offspring
             mutation.applyMutationToPopulation(new Population(offspring), mutationProbability);
 
-            // Calculate fitness for the new population
             fitnessCalculator.calculateFitnessForPopulation(new Population(offspring));
 
-            // Replace the old population with the new generation
             population.replacePopulation(offspring);
 
-            // Track and output the best chromosome of the generation
             Chromosome fittestChromosome = population.getFittest();
-            System.out.println("Best fitness of generation " + generation + ": " + fittestChromosome.getFitness());
+            System.out.printf("  Best Fitness: %.8f\n", fittestChromosome.getFitness());
 
-            // Optional: Early stopping if an optimal solution is found
             if (fittestChromosome.getFitness() > 0.99) {
-                System.out.println("Early stopping as an optimal solution is found.");
+                System.out.println("  Optimal solution found. Stopping early.");
                 break;
             }
         }
 
-        // Output the best solution found after all generations
         Chromosome bestChromosome = population.getFittest();
-        System.out.println("Best solution found:");
-        System.out.println(bestChromosome);
+        displayBestSolution(bestChromosome);
+    }
+
+    /**
+     * Displays the best solution in a clear, readable format.
+     *
+     * @param bestChromosome The chromosome representing the best solution.
+     */
+    private static void displayBestSolution(Chromosome bestChromosome) {
+        System.out.println("\nBest Solution Found:");
+        System.out.printf("  Fitness: %.8f\n", bestChromosome.getFitness());
+        System.out.println("  Teacher Assignments:");
+
+        for (Teacher teacher : bestChromosome.getTeachers()) {
+            System.out.printf("    - %s assigned to %s (Distance: %d)\n",
+                    teacher.getTeacherName(),
+                    teacher.getBestSchoolName(),
+                    teacher.getBestSchoolDistance());
+        }
     }
 
     /**
@@ -83,4 +87,3 @@ public class Main {
         return new ArrayList<>(sampledTeachers.subList(0, Math.min(sampleSize, sampledTeachers.size())));
     }
 }
-

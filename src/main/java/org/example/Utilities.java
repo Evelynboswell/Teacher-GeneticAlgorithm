@@ -24,15 +24,12 @@ public class Utilities {
             String[] values;
             boolean isFirstLine = true;
 
-            // Read each line from the CSV
             while ((values = csvReader.readNext()) != null) {
-                // Skip the header line if present
                 if (isFirstLine) {
                     isFirstLine = false;
                     continue;
                 }
 
-                // Parse line to Teacher object
                 Teacher teacher = parseLineToTeacher(values);
                 if (teacher != null) {
                     teachers.add(teacher);
@@ -56,23 +53,19 @@ public class Utilities {
      */
     private static Teacher parseLineToTeacher(String[] values) {
         try {
-            // Assuming CSV columns: NO, NAMA SEKOLAH, NAMA GURU, JARAK
             String schoolName = values[1].trim();
             String teacherName = values[2].trim();
 
-            // Parse distance to create a school assignment
-            String distanceStr = values[3].trim().replaceAll("[^\\d]", ""); // Remove non-numeric characters
+            String distanceStr = values[3].trim().replaceAll("[^\\d]", "");
             int distance = Integer.parseInt(distanceStr);
 
-            // Create a list for school assignments (one assignment per line in this simplified example)
             List<Teacher.SchoolAssignment> schoolAssignments = new ArrayList<>();
             schoolAssignments.add(new Teacher.SchoolAssignment(schoolName, distance));
 
-            // Create and return a Teacher object with this assignment
             return new Teacher(teacherName, schoolAssignments);
         } catch (Exception e) {
             System.err.println("Error parsing line: " + String.join(",", values) + " - " + e.getMessage());
-            return null; // Return null if parsing fails
+            return null;
         }
     }
 }

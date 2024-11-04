@@ -6,7 +6,6 @@ import java.util.Random;
 public class Selection {
     private Random random;
 
-    // Constructor
     public Selection() {
         this.random = new Random();
     }
@@ -18,16 +17,13 @@ public class Selection {
      * @return A selected Chromosome based on fitness-proportional probability.
      */
     public Chromosome rouletteWheelSelection(Population population) {
-        // Calculate total fitness of the population
         double totalFitness = 0.0;
         for (Chromosome chromosome : population.getChromosomes()) {
             totalFitness += chromosome.getFitness();
         }
 
-        // Generate a random threshold in the range [0, totalFitness)
         double randomThreshold = random.nextDouble() * totalFitness;
 
-        // Iterate through the population to find the chromosome matching the threshold
         double cumulativeFitness = 0.0;
         for (Chromosome chromosome : population.getChromosomes()) {
             cumulativeFitness += chromosome.getFitness();
@@ -36,7 +32,6 @@ public class Selection {
             }
         }
 
-        // Fallback: return the last chromosome if none is selected (edge case handling)
         return population.getChromosomes().get(population.getChromosomes().size() - 1);
     }
 

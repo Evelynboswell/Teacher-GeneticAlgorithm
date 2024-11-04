@@ -4,20 +4,18 @@ import java.util.List;
 
 public class Teacher {
     private String teacherName;
-    private int bestSchoolDistance; // Distance to the best school for this teacher
-    private String bestSchoolName;  // Name of the best school for this teacher
-    private List<SchoolAssignment> schoolAssignments; // List of possible school assignments
+    private int bestSchoolDistance;
+    private String bestSchoolName;
+    private List<SchoolAssignment> schoolAssignments;
 
-    // Constructor
     public Teacher(String teacherName, List<SchoolAssignment> schoolAssignments) {
         this.teacherName = teacherName;
         this.schoolAssignments = schoolAssignments;
-        this.bestSchoolDistance = Integer.MAX_VALUE; // Initialize with a large distance
+        this.bestSchoolDistance = Integer.MAX_VALUE;
         this.bestSchoolName = "";
         findBestSchool();
     }
 
-    // Method to find the best school assignment based on distance
     private void findBestSchool() {
         for (SchoolAssignment assignment : schoolAssignments) {
             if (assignment.getDistance() < bestSchoolDistance) {
@@ -27,7 +25,6 @@ public class Teacher {
         }
     }
 
-    // Getters
     public String getTeacherName() {
         return teacherName;
     }
@@ -44,7 +41,6 @@ public class Teacher {
         return schoolAssignments;
     }
 
-    // Setters for best school name and distance (needed in Chromosome and FitnessCalculator)
     public void setBestSchoolName(String schoolName) {
         this.bestSchoolName = schoolName;
     }
@@ -55,10 +51,9 @@ public class Teacher {
 
     public void setSchoolAssignments(List<SchoolAssignment> schoolAssignments) {
         this.schoolAssignments = schoolAssignments;
-        findBestSchool(); // Recalculate the best school when assignments are updated
+        findBestSchool();
     }
 
-    // Override toString to display teacher details and the best school assignment
     @Override
     public String toString() {
         return "Teacher{" +

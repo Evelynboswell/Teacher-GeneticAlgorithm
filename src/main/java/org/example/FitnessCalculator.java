@@ -12,14 +12,12 @@ public class FitnessCalculator {
     public double calculateFitness(Chromosome chromosome) {
         double totalDistance = 0;
 
-        // Sum the distances of all teacher-school assignments in the chromosome
         for (Teacher teacher : chromosome.getTeachers()) {
             totalDistance += teacher.getBestSchoolDistance();
         }
 
-        // Fitness is the inverse of the total distance (lower distance means higher fitness)
-        double fitness = 1 / (1 + totalDistance); // Adding 1 to prevent division by zero
-        chromosome.setFitness(fitness);           // Save the fitness value in the chromosome
+        double fitness = 1 / (1 + totalDistance);
+        chromosome.setFitness(fitness);
         return fitness;
     }
 
