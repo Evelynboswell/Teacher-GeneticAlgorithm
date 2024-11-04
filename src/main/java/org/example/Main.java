@@ -2,20 +2,22 @@ package org.example;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
 public class Main {
-
     public static void main(String[] args) {
         String filePath = "src/main/java/org/example/data_jarak.csv";
         int sampleSize = 50;
         int populationSize = 50;
-        double mutationProbability = 0.01;
+        double crossoverProbability = 0.8;
+        double mutationProbability = 0.1;
         int numGenerations = 300;
 
         ArrayList<Teacher> allTeachers = null;
         try {
             allTeachers = Utilities.loadTeachers(filePath);
-            allTeachers = sampleData(allTeachers, sampleSize); // Randomly sample a subset of data
+            allTeachers = sampleData(allTeachers, sampleSize);
             System.out.printf("Loaded and sampled %d teachers from CSV.\n", allTeachers.size());
         } catch (IOException e) {
             System.err.println("Failed to load teachers: " + e.getMessage());
@@ -27,6 +29,7 @@ public class Main {
         Selection selection = new Selection();
         Crossover crossover = new Crossover();
         Mutation mutation = new Mutation();
+        Random random = new Random();
 
         fitnessCalculator.calculateFitnessForPopulation(population);
 
@@ -35,7 +38,18 @@ public class Main {
 
             ArrayList<Chromosome> matingPool = selection.selectMatingPool(population, populationSize);
 
-            ArrayList<Chromosome> offspring = crossover.createOffspring(matingPool);
+            ArrayList<Chromosome> offspring = new ArrayList<>();
+            for (int i = 0; i < matingPool.size() - 1; i += 2) {
+                Chromosome parent1 = matingPool.get(i);
+                Chromosome parent2 = matingPool.get(i + 1);
+
+                if (random.nextDouble() < crossoverProbability) {
+                    offspring.add(crossover.cycleCrossover(parent1, parent2));
+                } else {
+                    offspring.add(new Chromosome(parent1.getTeachers()));
+                    offspring.add(new Chromosome(parent2.getTeachers()));
+                }
+            }
 
             mutation.applyMutationToPopulation(new Population(offspring), mutationProbability);
 

@@ -7,7 +7,7 @@ public class Chromosome {
     private double fitness;
     private Random random;
 
-    public Chromosome(ArrayList<Teacher> allTeachers) {
+    public Chromosome(List<Teacher> allTeachers) {
         this.teachers = new ArrayList<>(allTeachers);
         this.random = new Random();
         this.fitness = -1;
