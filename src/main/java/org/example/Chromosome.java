@@ -6,6 +6,7 @@ public class Chromosome {
     private List<Teacher> teachers;
     private double fitness;
     private Random random;
+    private static final double SCALING_FACTOR = 1000.0; // Matches FitnessCalculator scaling
 
     public Chromosome(List<Teacher> allTeachers) {
         this.teachers = new ArrayList<>(allTeachers);
@@ -13,37 +14,31 @@ public class Chromosome {
         this.fitness = -1;
     }
 
+    /**
+     * Randomly assigns teachers to schools from available assignments.
+     * Ensures diversity in initial assignments to reduce population similarity.
+     */
     public void randomizeAssignments() {
-        Map<String, Teacher.SchoolAssignment> uniqueAssignments = new HashMap<>();
-
         for (Teacher teacher : teachers) {
-            if (!uniqueAssignments.containsKey(teacher.getTeacherName())) {
-                List<Teacher.SchoolAssignment> assignments = teacher.getSchoolAssignments();
-                if (!assignments.isEmpty()) {
-                    int randomIndex = random.nextInt(assignments.size());
-                    Teacher.SchoolAssignment chosenAssignment = assignments.get(randomIndex);
-                    uniqueAssignments.put(teacher.getTeacherName(), chosenAssignment);
-                }
-            }
-        }
-
-        for (Teacher teacher : teachers) {
-            Teacher.SchoolAssignment assignment = uniqueAssignments.get(teacher.getTeacherName());
-            if (assignment != null) {
-                teacher.setBestSchoolName(assignment.getSchoolName());
-                teacher.setBestSchoolDistance(assignment.getDistance());
+            List<Teacher.SchoolAssignment> assignments = teacher.getSchoolAssignments();
+            if (!assignments.isEmpty()) {
+                int randomIndex = random.nextInt(assignments.size());
+                Teacher.SchoolAssignment chosenAssignment = assignments.get(randomIndex);
+                teacher.setBestSchoolName(chosenAssignment.getSchoolName());
+                teacher.setBestSchoolDistance(chosenAssignment.getDistance());
             }
         }
     }
 
+    /**
+     * Calculates fitness with a scaling factor for improved differentiation.
+     */
     public void calculateFitness() {
         double totalDistance = 0;
-
         for (Teacher teacher : teachers) {
             totalDistance += teacher.getBestSchoolDistance();
         }
-
-        this.fitness = 1 / (1 + totalDistance);
+        this.fitness = SCALING_FACTOR / (1 + totalDistance); // Consistent scaling
     }
 
     public double getFitness() {
@@ -61,11 +56,18 @@ public class Chromosome {
         return teachers;
     }
 
+    /**
+     * Performs cycle crossover with a random starting point to produce a child chromosome.
+     *
+     * @param other The second parent chromosome.
+     * @return The child chromosome created from the cycle crossover.
+     */
     public Chromosome cycleCrossover(Chromosome other) {
         ArrayList<Teacher> childTeachers = new ArrayList<>(Collections.nCopies(teachers.size(), null));
         boolean[] cycleFlags = new boolean[teachers.size()];
 
-        int start = 0;
+        int start = random.nextInt(teachers.size());
+
         while (start < teachers.size()) {
             if (cycleFlags[start]) {
                 start++;
@@ -73,17 +75,20 @@ public class Chromosome {
             }
 
             int current = start;
-            while (!cycleFlags[current]) {
+            do {
                 childTeachers.set(current, this.teachers.get(current));
                 cycleFlags[current] = true;
+
                 Teacher correspondingTeacher = other.teachers.get(current);
                 current = teachers.indexOf(correspondingTeacher);
-            }
+            } while (current != start && !cycleFlags[current]);
 
-            for (int i = 0; i < childTeachers.size(); i++) {
-                if (childTeachers.get(i) == null) {
-                    childTeachers.set(i, other.teachers.get(i));
-                }
+            start++;
+        }
+
+        for (int i = 0; i < childTeachers.size(); i++) {
+            if (childTeachers.get(i) == null) {
+                childTeachers.set(i, other.teachers.get(i));
             }
         }
 
@@ -92,20 +97,32 @@ public class Chromosome {
         return child;
     }
 
+    /**
+     * Applies insert mutation at the gene level, providing each gene a chance to mutate.
+     *
+     * @param mutationProbability The probability of mutation for each gene.
+     */
     public void insertMutation(double mutationProbability) {
-        if (random.nextDouble() < mutationProbability) {
-            int index1 = random.nextInt(teachers.size());
-            int index2 = random.nextInt(teachers.size());
+        for (int i = 0; i < teachers.size(); i++) {
+            if (random.nextDouble() < mutationProbability) {
+                int index1 = i;
+                int index2 = random.nextInt(teachers.size());
 
-            if (index1 > index2) {
-                int temp = index1;
-                index1 = index2;
-                index2 = temp;
+                while (index1 == index2) {
+                    index2 = random.nextInt(teachers.size());
+                }
+
+                if (index1 > index2) {
+                    int temp = index1;
+                    index1 = index2;
+                    index2 = temp;
+                }
+
+                Teacher teacherToMove = teachers.remove(index2);
+                teachers.add(index1 + 1, teacherToMove);
             }
-
-            Teacher teacherToMove = teachers.remove(index2);
-            teachers.add(index1 + 1, teacherToMove);
         }
+        calculateFitness();
     }
 
     @Override

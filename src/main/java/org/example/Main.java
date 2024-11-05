@@ -2,19 +2,18 @@ package org.example;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 
 public class Main {
     public static void main(String[] args) {
         String filePath = "src/main/java/org/example/data_jarak.csv";
-        int sampleSize = 50;
+        int sampleSize = 100;
         int populationSize = 50;
         double crossoverProbability = 0.8;
-        double mutationProbability = 0.1;
+        double mutationProbability = 0.2;
         int numGenerations = 300;
 
-        ArrayList<Teacher> allTeachers = null;
+        ArrayList<Teacher> allTeachers;
         try {
             allTeachers = Utilities.loadTeachers(filePath);
             allTeachers = sampleData(allTeachers, sampleSize);
@@ -31,7 +30,7 @@ public class Main {
         Mutation mutation = new Mutation();
         Random random = new Random();
 
-        fitnessCalculator.calculateFitnessForPopulation(population);
+        population.calculateFitnessForPopulation();
 
         for (int generation = 1; generation <= numGenerations; generation++) {
             System.out.printf("Generation %d:\n", generation);
@@ -46,20 +45,24 @@ public class Main {
                 if (random.nextDouble() < crossoverProbability) {
                     offspring.add(crossover.cycleCrossover(parent1, parent2));
                 } else {
-                    offspring.add(new Chromosome(parent1.getTeachers()));
-                    offspring.add(new Chromosome(parent2.getTeachers()));
+                    offspring.add(new Chromosome(new ArrayList<>(parent1.getTeachers())));
+                    offspring.add(new Chromosome(new ArrayList<>(parent2.getTeachers())));
                 }
             }
 
-            mutation.applyMutationToPopulation(new Population(offspring), mutationProbability);
+            Population offspringPopulation = new Population(offspring);
+            mutation.applyMutationToPopulation(offspringPopulation, mutationProbability);
 
-            fitnessCalculator.calculateFitnessForPopulation(new Population(offspring));
+            offspringPopulation.calculateFitnessForPopulation();
 
-            population.replacePopulation(offspring);
+            population.replacePopulation(offspringPopulation.getChromosomes());
 
             Chromosome fittestChromosome = population.getFittest();
             System.out.printf("  Best Fitness: %.8f\n", fittestChromosome.getFitness());
-
+            for (int i = 0; i < Math.min(5, population.getChromosomes().size()); i++) {
+                System.out.printf("Chromosome %d Fitness: %.8f\n", i, population.getChromosomes().get(i).getFitness());
+            }
+            System.out.printf("Generation %d Diversity: %d unique fitness values\n", generation, population.measureDiversity());
             if (fittestChromosome.getFitness() > 0.99) {
                 System.out.println("  Optimal solution found. Stopping early.");
                 break;

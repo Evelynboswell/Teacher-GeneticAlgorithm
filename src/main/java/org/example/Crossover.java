@@ -1,8 +1,14 @@
 package org.example;
 
 import java.util.ArrayList;
+import java.util.Random;
 
 public class Crossover {
+    private Random random;
+
+    public Crossover() {
+        this.random = new Random();
+    }
 
     /**
      * Performs cycle crossover between two parent chromosomes to produce an offspring.
@@ -12,16 +18,19 @@ public class Crossover {
      * @return The offspring chromosome created from the cycle crossover.
      */
     public Chromosome cycleCrossover(Chromosome parent1, Chromosome parent2) {
-        ArrayList<Teacher> childTeachers = new ArrayList<>(parent1.getTeachers().size());
+        int geneSize = parent1.getTeachers().size();
+        ArrayList<Teacher> childTeachers = new ArrayList<>(geneSize);
 
-        for (int i = 0; i < parent1.getTeachers().size(); i++) {
+        for (int i = 0; i < geneSize; i++) {
             childTeachers.add(null);
         }
 
-        boolean[] visited = new boolean[parent1.getTeachers().size()];
+        boolean[] visited = new boolean[geneSize];
 
-        int start = 0;
-        while (start < parent1.getTeachers().size()) {
+        int start = random.nextInt(geneSize);
+        int initialStart = start;
+
+        while (start < geneSize) {
             if (visited[start]) {
                 start++;
                 continue;
@@ -38,10 +47,12 @@ public class Crossover {
 
             } while (current != start && !visited[current]);
 
-            for (int i = 0; i < childTeachers.size(); i++) {
-                if (childTeachers.get(i) == null) {
-                    childTeachers.set(i, parent2.getTeachers().get(i));
-                }
+            start++;
+        }
+
+        for (int i = 0; i < geneSize; i++) {
+            if (childTeachers.get(i) == null) {
+                childTeachers.set(i, parent2.getTeachers().get(i));
             }
         }
 
